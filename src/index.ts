@@ -57,24 +57,34 @@ const server = http.createServer((req, res) => {
   } else if (req.url === "/products") {
     const productFilePath = path.join(__dirname, 'data', 'product.json')
     
-    fs.access(productFilePath, (err) => {
+    // ! ensureing file is exsist 
+    fs.access(productFilePath,fs.constants.F_OK, (err) => {
       if(err) {
         res.writeHead(404, { "Content-Type": "text/plain" });
         res.end("Product file not found.");
         return;
       }
-
+      
+      // ! read Content of file  
       fs.readFile(productFilePath, 'utf8', (err, data) => {
-        console.log(path.join(__dirname, 'data', 'product.json'));
         if (err) {
           res.writeHead(500, { "Content-Type": "text/plain" });
           res.end("Error reading the products file.");
           return;
         }
+  
         try {
-          const products = JSON.parse(data);
+          const jsonProducts = JSON.parse(data);
+          // ! Add new Product to array
+          const submitedProduct = { id: 2, title: "product2" };
+          jsonProducts.products.push(submitedProduct)
+          const updatedData = JSON.stringify(jsonProducts)
+          // ! Write new updated data to file
+          fs.writeFile(productFilePath, updatedData, err => {
+            console.log(err);
+          })
           res.writeHead(200, { "Content-Type": "application/json" });
-          res.end(JSON.stringify(products))
+          res.end(JSON.stringify(jsonProducts))
         } catch (error) {
           res.writeHead(500, {'content-type': 'text/plain'})
           res.end('Error parsing the products file')
