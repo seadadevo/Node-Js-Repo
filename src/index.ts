@@ -4,7 +4,7 @@
  */
 
 import * as http from "http";
-import fs from "fs";
+import fs, {promises as fsPromises} from "fs";
 import path from "path";
 const server = http.createServer((req, res) => {
   const productFilePath = path.join(__dirname, "data", "product.json");
@@ -73,24 +73,24 @@ const server = http.createServer((req, res) => {
     req.on("data", (chunk) => {
       body += chunk.toString();
     });
-    req.on("end", () => {
+    req.on("end", async () => {
       const data = new URLSearchParams(body);
       const title = data.get("title");
       const description = data.get("description");
 
-      fs.readFile(productFilePath, "utf8", (err, data) => {
-        const jsonProducts = JSON.parse(data);
+      try {
+        const jsonData = await fsPromises.readFile(productFilePath, "utf8")
+        const jsonProducts = JSON.parse(jsonData);
         jsonProducts.products.push({
           id: jsonProducts.products.length + 1,
           title: title as string,
           description: description as string,
-        });
+        })
         const updatedData = JSON.stringify(jsonProducts, null, 2);
-        // ! Write new updated data to file
-        fs.writeFile(productFilePath, updatedData, (err) => {
-          console.log(err);
-        });
-      });
+        await fsPromises.writeFile(productFilePath, updatedData, {flag: "w"})
+      } catch (error) {
+        console.log(error)
+      }
       res.writeHead(200, { "Content-Type": "text/plain" });
       res.write(`<div>
           <h1>Product has been added</h1>
@@ -98,7 +98,7 @@ const server = http.createServer((req, res) => {
           <h1>description: ${description}</h1>
         </div>`);
       res.end();
-    });
+    })
   } else if (req.url === "/about") {
     res.writeHead(200, { "Content-Type": "text/plain" });
     res.end("This is about Page");
