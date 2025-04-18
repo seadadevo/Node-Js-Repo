@@ -7,6 +7,7 @@ import * as http from "http";
 import fs from "fs";
 import path from "path";
 const server = http.createServer((req, res) => {
+  const productFilePath = path.join(__dirname, "data", "product.json");
   if (req.url === "/") {
     fs.readFile("index.html", (err, data) => {
       if (err) {
@@ -19,6 +20,34 @@ const server = http.createServer((req, res) => {
         res.write("</div>");
         res.end(data);
       }
+    });
+  } else if (req.url === "/products") {
+    // ! ensureing file is exsist
+    fs.access(productFilePath, fs.constants.F_OK, (err) => {
+      if (err) {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("Product file not found.");
+        return;
+      }
+
+      // ! read Content of file
+      fs.readFile(productFilePath, "utf8", (err, data) => {
+        if (err) {
+          res.writeHead(500, { "Content-Type": "text/plain" });
+          res.end("Error reading the products file.");
+          return;
+        }
+
+        try {
+          const jsonProducts = JSON.parse(data);
+
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(JSON.stringify(jsonProducts));
+        } catch (error) {
+          res.writeHead(500, { "content-type": "text/plain" });
+          res.end("Error parsing the products file");
+        }
+      });
     });
   } else if (req.url === "/products/new") {
     res.writeHead(200, { "Content-Type": "text/html" });
@@ -46,54 +75,30 @@ const server = http.createServer((req, res) => {
     });
     req.on("end", () => {
       const data = new URLSearchParams(body);
+      const title = data.get("title");
+      const description = data.get("description");
+
+      fs.readFile(productFilePath, "utf8", (err, data) => {
+        const jsonProducts = JSON.parse(data);
+        jsonProducts.products.push({
+          id: jsonProducts.products.length + 1,
+          title: title as string,
+          description: description as string,
+        });
+        const updatedData = JSON.stringify(jsonProducts, null, 2);
+        // ! Write new updated data to file
+        fs.writeFile(productFilePath, updatedData, (err) => {
+          console.log(err);
+        });
+      });
       res.writeHead(200, { "Content-Type": "text/plain" });
       res.write(`<div>
           <h1>Product has been added</h1>
-          <h1>Title: ${data.get("title")}</h1>
-          <h1>description: ${data.get("description")}</h1>
+          <h1>Title: ${title}</h1>
+          <h1>description: ${description}</h1>
         </div>`);
-      res.end("<h1>Product has been added</h1>");
+      res.end();
     });
-  } else if (req.url === "/products") {
-    const productFilePath = path.join(__dirname, 'data', 'product.json')
-    
-    // ! ensureing file is exsist 
-    fs.access(productFilePath,fs.constants.F_OK, (err) => {
-      if(err) {
-        res.writeHead(404, { "Content-Type": "text/plain" });
-        res.end("Product file not found.");
-        return;
-      }
-      
-      // ! read Content of file  
-      fs.readFile(productFilePath, 'utf8', (err, data) => {
-        if (err) {
-          res.writeHead(500, { "Content-Type": "text/plain" });
-          res.end("Error reading the products file.");
-          return;
-        }
-  
-        try {
-          const jsonProducts = JSON.parse(data);
-          // ! Add new Product to array
-          const submitedProduct = { id: 2, title: "product2" };
-          jsonProducts.products.push(submitedProduct)
-          const updatedData = JSON.stringify(jsonProducts)
-          // ! Write new updated data to file
-          fs.writeFile(productFilePath, updatedData, err => {
-            console.log(err);
-          })
-          res.writeHead(200, { "Content-Type": "application/json" });
-          res.end(JSON.stringify(jsonProducts))
-        } catch (error) {
-          res.writeHead(500, {'content-type': 'text/plain'})
-          res.end('Error parsing the products file')
-        }
-      })
-
-    })
-
-    
   } else if (req.url === "/about") {
     res.writeHead(200, { "Content-Type": "text/plain" });
     res.end("This is about Page");
