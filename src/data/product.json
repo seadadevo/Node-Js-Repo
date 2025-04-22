@@ -1,10 +1,34 @@
 {
   "products": [
-    { "id": 1, "title": "First product" },
-    { "id": 2, "title": "Second product" },
-    { "id": 3, "title": "Third product" },
-    { "id": 4, "title": "Fourth product" },
-    { "id": 2, "title": "product2" },
-    { "id": 2, "title": "product2" }
+    {
+      "id": 1,
+      "title": "First product",
+      "description": "First description product"
+    },
+    {
+      "id": 2,
+      "title": "Second product",
+      "description": "Second description product"
+    },
+    {
+      "id": 3,
+      "title": "ahmed ",
+      "description": "ahmed magdy hussin"
+    },
+    {
+      "id": 4,
+      "title": "ahmed is good",
+      "description": "ahmed magdy idsada"
+    },
+    {
+      "id": 5,
+      "title": "samer",
+      "description": "samer is good"
+    },
+    {
+      "id": 6,
+      "title": "a=khaled",
+      "description": "ismialdfsff sdf"
+    }
   ]
 }
