@@ -8,6 +8,7 @@ import fs, {promises as fsPromises} from "fs";
 import path from "path";
 const server = http.createServer((req, res) => {
   const productFilePath = path.join(__dirname, "data", "product.json");
+  const assetsPath = path.join(__dirname, "assets");
   if (req.url === "/") {
     fs.readFile("index.html", (err, data) => {
       if (err) {
@@ -102,7 +103,33 @@ const server = http.createServer((req, res) => {
   } else if (req.url === "/about") {
     res.writeHead(200, { "Content-Type": "text/plain" });
     res.end("This is about Page");
-  } else {
+  } else if (req.url === "/assets" && req.method === "GET") {
+    fs.access(assetsPath, (err) => {
+      if(err) {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("Path file not found.");
+        return;
+      }
+
+      fs.readdir(assetsPath,  (err, files) => {
+        if(err) {
+          console.error(err)
+          return;
+        }
+
+        res.writeHead(200, {'content-type': "text/html"})
+        res.write("<h1>Here are your assets:</h1>")
+        res.write("<ul>")
+        files.forEach(file => {
+          res.write(`<li><span>${file}</span></li>`)
+        })
+        res.write("</ul>")
+        res.end()
+      })
+    })
+    
+  }
+   else {
     res.writeHead(404, { "Content-Type": "text/plain" });
     res.end("404 - Page not found");
   }
