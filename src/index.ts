@@ -1,22 +1,36 @@
 import express, { Request, Response } from "express";
-import {generateFakeProducts} from '../src/utils/fakeData'
+import { generateFakeProducts } from "../src/utils/fakeData";
+import { IfakeProducts } from "./interfaces";
 const app = express();
 
-interface IfakeProducts {
-    id: number;
-    title: string;
-    price: number;
-    description: string;
-}
-
-const fakeProducts : IfakeProducts[] = generateFakeProducts()
+const fakeProducts: IfakeProducts[] = generateFakeProducts();
 
 app.get("/", (req, res) => {
   res.send(`<h1>Hello express js</h1>`);
 });
 
 app.get("/products", (req, res) => {
-  res.send(generateFakeProducts());
+  const filterQuery = req.query.filter as string;
+  const allProducts : IfakeProducts[] = fakeProducts
+
+  let filterProducts: any[] = [];
+
+  if (filterQuery) {
+    const propertiesOfFilter = filterQuery.split(",");
+
+    filterProducts = fakeProducts.map((product) => {
+      const filteredProduct: any = {};
+      propertiesOfFilter.forEach((property) => {
+        if (product.hasOwnProperty(property)) {
+          filteredProduct[property] = product[property as keyof IfakeProducts];
+        }
+      });
+      return {id: product.id, ...filteredProduct};
+    });
+  } else  {
+    filterProducts = allProducts;
+  }
+  res.send(filterProducts);
 });
 
 app.get("/products/:id", (req: Request, res: Response) => {
@@ -24,7 +38,9 @@ app.get("/products/:id", (req: Request, res: Response) => {
   if (isNaN(productId)) {
     res.status(404).send({ message: "Invalid Product ID" });
   }
-  const findProduct : IfakeProducts | undefined = fakeProducts.find((p) => p.id === productId) 
+  const findProduct: IfakeProducts | undefined = fakeProducts.find(
+    (p) => p.id === productId
+  );
   if (findProduct) {
     res.send(findProduct);
   } else {
