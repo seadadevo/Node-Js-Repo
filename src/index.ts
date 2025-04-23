@@ -49,7 +49,7 @@ app.get("/products/:id", (req: Request, res: Response) => {
   }
 });
 
-app.post("/products", (req, res) => {
+app.post("/products", (req: Request, res: Response)  => {
   console.log("headers is:", req.headers);
   console.log("body is:", req.body);
   const newProduct = req.body;
@@ -60,6 +60,34 @@ app.post("/products", (req, res) => {
     price: req.body.price,
   });
 });
+
+// patch
+app.patch('/products/:id', (req: Request, res: Response)  => {
+  const productId = Number(req.params.id)
+  if(isNaN(productId)) {
+     res.status(404).send({
+      message: "Product not found",
+    })
+    return;
+  }
+
+  const productIndex : number | undefined =fakeProducts.findIndex(p => p.id === productId )
+  const productBody = req.body
+  if(productIndex !== -1) {
+    fakeProducts[productIndex] = {...fakeProducts[productIndex], ...productBody }
+    res.status(200).send({
+      message: "Product has been updated",
+      updatedProduct: fakeProducts[productIndex]
+    })
+    return;
+  } 
+
+  res.status(404).send({
+    message: "Product not found",
+  });
+
+
+})
 
 const PORT: number = 5000;
 app.listen(PORT, () => {
