@@ -1,23 +1,22 @@
 import express, { Request, Response } from "express";
-
+import {generateFakeProducts} from '../src/utils/fakeData'
 const app = express();
 
-type Product = {
-  id: number;
-  name: string;
-};
+interface IfakeProducts {
+    id: number;
+    title: string;
+    price: number;
+    description: string;
+}
 
-const dummy_products: Product[] = [
-  { id: 1, name: "Blue T-Shirt" },
-  { id: 2, name: "Blue T-bant" },
-];
+const fakeProducts : IfakeProducts[] = generateFakeProducts()
 
 app.get("/", (req, res) => {
   res.send(`<h1>Hello express js</h1>`);
 });
 
 app.get("/products", (req, res) => {
-  res.send(dummy_products);
+  res.send(generateFakeProducts());
 });
 
 app.get("/products/:id", (req: Request, res: Response) => {
@@ -25,7 +24,7 @@ app.get("/products/:id", (req: Request, res: Response) => {
   if (isNaN(productId)) {
     res.status(404).send({ message: "Invalid Product ID" });
   }
-  const findProduct = dummy_products.find((p) => p.id === productId);
+  const findProduct : IfakeProducts | undefined = fakeProducts.find((p) => p.id === productId) 
   if (findProduct) {
     res.send(findProduct);
   } else {
