@@ -89,6 +89,35 @@ app.patch('/products/:id', (req: Request, res: Response)  => {
 
 })
 
+//delete
+app.delete('/products/:id', (req, res) => {
+  const productId = +req.params.id
+
+  if(isNaN(productId)) {
+    res.status(404).send({
+      message: "Product not Found"
+    })
+    return;
+  }
+
+  const productIndex = fakeProducts.findIndex(p => p.id === productId)
+  
+  if(productIndex !== -1) {
+    const deletedProduct = fakeProducts[productIndex]
+    fakeProducts.splice( productIndex , 1)
+    const filteredProduct = fakeProducts.filter(p => p.id !== productId)
+    res.status(200).send({
+      message: "Product has been deleted",
+      deletedProduct
+    })
+  } else {
+    res.status(404).send({
+      message: "Product not Found"
+    })
+    return; 
+  }
+
+})
 const PORT: number = 5000;
 app.listen(PORT, () => {
   console.log(`Server running at => http://localhost:${PORT}`);
